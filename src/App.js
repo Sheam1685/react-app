@@ -25,11 +25,30 @@ const initialTasks = [
 
 function App() {
   const [tasks, setTasks] = useState(initialTasks);
+  const delayTask = (id) => {
+    setTasks(prevTasks => {
+      return prevTasks.map((task) => {
+          if (task.id === id) {
+              const d = new Date(task.day);
+              d.setDate(d.getDate() + 1);
+              return {...task, day : d.toISOString().slice(0,10)}
+          }
+          return task;
+      })
+    });
+  }
+  const deleteTask = (id) => {
+    setTasks(tasks.filter((task) => task.id !== id));
+  }
+  const toggleReminder = (id) => {
+    setTasks(tasks.map((task) => task.id === id ? {...task, reminder: !task.reminder} : task));
+    console.log(id);
+  }
   return (
     <div className="container">
       <Header title='TASK TRACKER'/>
       {/* send tasks and setTasks as parameter */}
-      <Tasks tasks={tasks} setTasks={setTasks} />
+      {tasks.length > 0 ? <Tasks tasks={tasks} delayTask={delayTask} deleteTask={deleteTask} doubleClick={toggleReminder} /> : <h3>No Tasks to Show</h3>}
     </div>
   );
 }
