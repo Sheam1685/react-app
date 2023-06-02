@@ -1,5 +1,6 @@
 import Header from './components/Header';
 import Tasks from './components/Tasks';
+import AddTask from './components/AddTask';
 import { useState } from 'react';
 
 const initialTasks = [  
@@ -25,6 +26,18 @@ const initialTasks = [
 
 function App() {
   const [tasks, setTasks] = useState(initialTasks);
+  const [showAddTask, setShowAddTask] = useState(false)
+
+  const showAddTaskForm = () => {
+    setShowAddTask(!showAddTask);
+  }
+
+  const addTask = (task) => {
+    // iterate over the tasks and find the max id
+    const maxId = tasks.reduce((max, task) => task.id > max ? task.id : max, 0);
+    const newTask = {id: maxId + 1, ...task};
+    setTasks([...tasks, newTask]);
+  }
   const delayTask = (id) => {
     setTasks(prevTasks => {
       return prevTasks.map((task) => {
@@ -46,7 +59,8 @@ function App() {
   }
   return (
     <div className="container">
-      <Header title='TASK TRACKER'/>
+      <Header title='TASK TRACKER' showForm={showAddTaskForm} showAddTask={showAddTask}/>
+      {showAddTask? <AddTask onAdd={addTask}/> : ''}
       {/* send tasks and setTasks as parameter */}
       {tasks.length > 0 ? <Tasks tasks={tasks} delayTask={delayTask} deleteTask={deleteTask} doubleClick={toggleReminder} /> : <h3>No Tasks to Show</h3>}
     </div>
