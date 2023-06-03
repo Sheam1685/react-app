@@ -1,61 +1,120 @@
-import Header from './components/Header';
 import Tasks from './components/Tasks';
 import AddTask from './components/AddTask';
-import { useState } from 'react';
+import Header from './components/Header';
+import { useState, useEffect } from 'react';
 
-const initialTasks = [  
-  {
-      id: 1,
-      text: 'Doctors Appointment',
-      day: '2023-02-05',
-      reminder: true,
-  },
-  {
-      id: 2,
-      text: 'Meeting at School',
-      day: '2023-02-06',
-      reminder: true,
-  },
-  {
-      id: 3,
-      text: 'Food Shopping',
-      day: '2023-02-07',
-      reminder: false,
-  },
-];
-
-function App() {
-  const [tasks, setTasks] = useState(initialTasks);
+const App = () => {
+  const [tasks, setTasks] = useState([]);
   const [showAddTask, setShowAddTask] = useState(false)
+  
+  const fetchTasks = async () => {
+    const res = await fetch('http://localhost:5000/tasks');
+    const data = await res.json();
+    return data;
+  }
+  useEffect(() => {
+    const getTasks = async () => {
+      const tasksFromServer = await fetchTasks();
+      setTasks(tasksFromServer);
+    }
+    getTasks();
+  }, []);
 
   const showAddTaskForm = () => {
     setShowAddTask(!showAddTask);
   }
 
-  const addTask = (task) => {
-    // iterate over the tasks and find the max id
+  const addTask = async(task) => {
     const maxId = tasks.reduce((max, task) => task.id > max ? task.id : max, 0);
     const newTask = {id: maxId + 1, ...task};
-    setTasks([...tasks, newTask]);
-  }
-  const delayTask = (id) => {
-    setTasks(prevTasks => {
-      return prevTasks.map((task) => {
-          if (task.id === id) {
-              const d = new Date(task.day);
-              d.setDate(d.getDate() + 1);
-              return {...task, day : d.toISOString().slice(0,10)}
-          }
-          return task;
-      })
+    try {
+      const response = await fetch(`http://localhost:5000/tasks`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newTask),
     });
+    if (!response.ok) {
+      throw new Error('Failed to delete item');
+    }
+    const data = await response.json();
+    setTasks([...tasks, data]);
+    } catch (error) {
+      console.error(error);
+    }
+    // iterate over the tasks and find the max id
   }
-  const deleteTask = (id) => {
+  const delayTask = async(id) => {
+    // filter out the task with the id
+    const taskToDelay = tasks.find((task) => task.id === id);
+    const d = new Date(taskToDelay.day);
+    d.setDate(d.getDate() + 1);
+    const updatedData = {...taskToDelay, day : d.toISOString().slice(0,10)};
+    
+    try {
+      const response = await fetch(`http://localhost:5000/tasks/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to update item');
+      }
+  
+      const updatedItem = await response.json();
+      setTasks(tasks.map((task) => task.id === id ? updatedItem : task));
+    } catch (error) {
+      console.error(error);
+    }
+    // setTasks(prevTasks => {
+    //   return prevTasks.map((task) => {
+    //       if (task.id === id) {
+    //           const d = new Date(task.day);
+    //           d.setDate(d.getDate() + 1);
+    //           return {...task, day : d.toISOString().slice(0,10)}
+    //       }
+    //       return task;
+    //   })
+    // });
+  }
+  const deleteTask = async(id) => {
+    try{
+        const response = await fetch(`http://localhost:5000/tasks/${id}`, {method: 'DELETE'});
+        if (!response.ok) {
+          throw new Error('Failed to delete item');
+        }
+    }catch(err){
+        console.error(err);
+    }
     setTasks(tasks.filter((task) => task.id !== id));
   }
-  const toggleReminder = (id) => {
-    setTasks(tasks.map((task) => task.id === id ? {...task, reminder: !task.reminder} : task));
-    console.log(id);
+  const toggleReminder = async(id) => {
+    // filter out the task with the id and toggle the reminder
+    const taskToToggle = tasks.find((task) => task.id === id);
+    const updatedData = {...taskToToggle, reminder: !taskToToggle.reminder};
+    try {
+      const response = await fetch(`http://localhost:5000/tasks/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to update item');
+      }
+  
+      const updatedItem = await response.json();
+      setTasks(tasks.map((task) => task.id === id ? updatedItem : task));
+    } catch (error) {
+      console.error(error);
+    }
+    //setTasks(tasks.map((task) => task.id === id ? {...task, reminder: !task.reminder} : task));
   }
   return (
     <div className="container">
