@@ -1,7 +1,10 @@
 import Tasks from './components/Tasks';
 import AddTask from './components/AddTask';
 import Header from './components/Header';
+import Footer from './components/Footer';
+import About from './components/About';
 import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 const App = () => {
   const [tasks, setTasks] = useState([]);
@@ -117,12 +120,27 @@ const App = () => {
     //setTasks(tasks.map((task) => task.id === id ? {...task, reminder: !task.reminder} : task));
   }
   return (
+    <Router>
     <div className="container">
       <Header title='TASK TRACKER' showForm={showAddTaskForm} showAddTask={showAddTask}/>
-      {showAddTask? <AddTask onAdd={addTask}/> : ''}
-      {/* send tasks and setTasks as parameter */}
-      {tasks.length > 0 ? <Tasks tasks={tasks} delayTask={delayTask} deleteTask={deleteTask} doubleClick={toggleReminder} /> : <h3>No Tasks to Show</h3>}
+      {/* Route the components only for / exactly. Without it all these components would be always there even in /about */}
+      <Routes>
+        <Route path='/' exact element= {
+        <>
+          {showAddTask? <AddTask onAdd={addTask}/> : ''}
+          {/* send tasks and setTasks as parameter */}
+          {tasks.length > 0 ? <Tasks tasks={tasks} delayTask={delayTask} deleteTask={deleteTask} doubleClick={toggleReminder} /> : <h3>No Tasks to Show</h3>}
+        </> 
+        }
+        />
+      </Routes>
+      {/* Route the about component */}
+      <Routes>
+        <Route path='/about' element={<About />} />
+      </Routes>
+      <Footer />
     </div>
+    </Router>
   );
 }
 
