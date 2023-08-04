@@ -16,7 +16,7 @@
       "id": 5,
       "text": "Do project meeting",
       "day": "2023-07-11",
-      "reminder": true
+      "reminder": false
     }
   ]
 }

@@ -144,16 +144,4 @@ const App = () => {
   );
 }
 
-// same component but as a class component
-// class App extends React.Component {
-//   render() {
-//     return (
-//       <div className="container">
-//         <Header />
-//         <h2>Hello World!!!</h2>
-//       </div>
-//     );
-//   }
-// }
-
 export default App;
